@@ -14,6 +14,8 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
   final Telephony telephony = Telephony.instance;
   String textReceived = "";
   String apiResponse = "";
+  String transferTo = "";
+  final TextEditingController categoryController = TextEditingController();
 
   Future<void> createExpense(String mobileNumber, String sms) async {
     const String url =
@@ -33,11 +35,22 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
     try {
       final response =
           await http.post(Uri.parse(url), headers: headers, body: body);
-      print(response);
       if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        final String responseMessage = responseData['responseMessage'] ?? '';
+        final responseObject = responseData['responseObject'] ?? {};
+        final String referenceNumber = responseObject['referenceNumber'] ?? '';
+
         setState(() {
-          apiResponse = response.body;
+          apiResponse = responseMessage;
         });
+
+        if (responseMessage ==
+            "Expense Added Successfully But this is a new Category") {
+          if (referenceNumber.isNotEmpty) {
+            fetchTransactionDetails(referenceNumber);
+          }
+        }
       } else {
         print("Failed to create expense: ${response.statusCode}");
       }
@@ -46,8 +59,96 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
     }
   }
 
+  Future<void> fetchTransactionDetails(String referenceNumber) async {
+    const String urlBase = "http://10.0.2.2:9001/expenso/api/v1/transaction/view/";
+    const String authorization = "Basic cm9vdDpyaXRpazc2OA==";
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': authorization,
+    };
+
+    final String url = "$urlBase$referenceNumber";
+
+    try {
+      final response = await http.get(Uri.parse(url), headers: headers);
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        final responseObject = responseData['responseObject'] ?? {};
+        setState(() {
+          transferTo = responseObject['transferTo'] ?? 'Unknown';
+        });
+        _showCategoryInputDialog();
+      } else {
+        print("Failed to fetch transaction details: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error making API call: $e");
+    }
+  }
+
+  Future<void> createCategory(String transferTo, String category) async {
+    const String url =
+        "http://10.0.2.2:9001/expenso/api/v1/category/create/category";
+    const String authorization = "Basic cm9vdDpyaXRpazc2OA==";
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': authorization,
+    };
+
+    final body = jsonEncode({
+      "transferTo": transferTo,
+      "category": category,
+    });
+
+    try {
+      final response =
+          await http.post(Uri.parse(url), headers: headers, body: body);
+      if (response.statusCode == 200) {
+        print("Category added successfully.");
+      } else {
+        print("Failed to add category: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error making API call: $e");
+    }
+  }
+
+  void _showCategoryInputDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Add Category"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text("Transfer To: $transferTo"),
+            TextField(
+              controller: categoryController,
+              decoration: const InputDecoration(
+                labelText: "Enter Category",
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              final category = categoryController.text.trim();
+              if (category.isNotEmpty) {
+                createCategory(transferTo, category);
+                Navigator.pop(context);
+              }
+            },
+            child: const Text("Submit"),
+          ),
+        ],
+      ),
+    );
+  }
+
   void startListening() {
-    print("Listening to SMS");
     telephony.listenIncomingSms(
       onNewMessage: (SmsMessage message) {
         setState(() {
@@ -76,18 +177,18 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               "Message Received:",
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             Text(
               textReceived,
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 20),
-            Text(
+            const Text(
               "API Response:",
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             Text(
               apiResponse,
