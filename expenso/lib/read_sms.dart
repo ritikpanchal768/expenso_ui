@@ -114,8 +114,9 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
           final responseData = jsonDecode(response.body);
           final String refNumber =
               responseData['responseObject']['referenceNumber'] ?? '';
-
-          if (refNumber.isNotEmpty) {
+          final String category =
+              responseData['responseObject']['category'] ?? '';
+          if (refNumber.isNotEmpty && category.isEmpty) {
             await fetchTransactionDetailsInBackground(refNumber);
           }
         }
@@ -198,12 +199,14 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
         final responseData = jsonDecode(response.body);
         final String refNumber =
             responseData['responseObject']['referenceNumber'] ?? '';
+        final String category =
+              responseData['responseObject']['category'] ?? '';
 
         setState(() {
           referenceNumber = refNumber;
         });
 
-        if (refNumber.isNotEmpty) {
+        if (refNumber.isNotEmpty && category.isEmpty) {
           fetchTransactionDetails(refNumber);
         }
       }
@@ -288,6 +291,20 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
           await http.post(Uri.parse(url), headers: headers, body: body);
       if (response.statusCode == 200) {
         print("Category added successfully.");
+        await flutterLocalNotificationsPlugin.show(
+            0,
+            'Category Added',
+            'Your category has been mapped successfully.',
+            const NotificationDetails(
+              android: AndroidNotificationDetails(
+                'expenso_channel',
+                'Expenso',
+                channelDescription: 'Expenso notifications',
+                importance: Importance.high,
+                priority: Priority.high,
+              ),
+            ),
+          );
       }
     } catch (e) {
       print("Error creating category: $e");
