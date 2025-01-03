@@ -86,7 +86,7 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
   Future<void> fetchTransactions() async {
     print("Fetching TransactionDetails...");
     const String url =
-        "http://192.168.1.3:9001/expenso/api/v1/transaction/viewByMobileNumber/8700002896";
+        "http://192.168.1.5:9001/expenso/api/v1/transaction/viewByMobileNumber/8700002896";
     const String authorization = "Basic cm9vdDpyaXRpazc2OA==";
 
     final headers = {
@@ -154,7 +154,7 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
     if (message.body != null) {
       final String smsBody = message.body!;
       const String url =
-          "http://192.168.1.3:9001/expenso/api/v1/expense/create/expense";
+          "http://192.168.1.5:9001/expenso/api/v1/expense/create/expense";
       const String authorization = "Basic cm9vdDpyaXRpazc2OA==";
 
       final headers = {
@@ -186,7 +186,7 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
   static Future<void> fetchTransactionDetailsInBackground(
       String refNumber) async {
     const String urlBase =
-        "http://192.168.1.3:9001/expenso/api/v1/transaction/viewByReferenceNumber/";
+        "http://192.168.1.5:9001/expenso/api/v1/transaction/viewByReferenceNumber/";
     const String authorization = "Basic cm9vdDpyaXRpazc2OA==";
 
     final headers = {
@@ -241,7 +241,7 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
 
   Future<void> createExpense(String mobileNumber, String sms) async {
     const String url =
-        "http://192.168.1.3:9001/expenso/api/v1/expense/create/expense";
+        "http://192.168.1.5:9001/expenso/api/v1/expense/create/expense";
     const String authorization = "Basic cm9vdDpyaXRpazc2OA==";
 
     final headers = {
@@ -277,7 +277,7 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
 
   Future<void> fetchTransactionDetails(String refNumber) async {
     const String urlBase =
-        "http://192.168.1.3:9001/expenso/api/v1/transaction/viewByReferenceNumber/";
+        "http://192.168.1.5:9001/expenso/api/v1/transaction/viewByReferenceNumber/";
     const String authorization = "Basic cm9vdDpyaXRpazc2OA==";
 
     final headers = {
@@ -336,7 +336,7 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
 
   Future<void> createCategory(String transferTo, String category) async {
     const String url =
-        "http://192.168.1.3:9001/expenso/api/v1/category/create/category";
+        "http://192.168.1.5:9001/expenso/api/v1/category/create/category";
     const String authorization = "Basic cm9vdDpyaXRpazc2OA==";
 
     final headers = {
@@ -371,151 +371,46 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
     }
   }
 
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(title: const Text("Expenso")),
-    body: SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text("Transaction Charts:"),
-            const SizedBox(height: 16.0),
-            // Pie Chart
-            transactions.isNotEmpty
-                ? SizedBox(
-                    height: 200, // Adjust height as needed
-                    child: PieChart(
-                      PieChartData(
-                        sections: _getPieChartSections(),
-                        centerSpaceRadius: 40,
-                        sectionsSpace: 2,
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Expenso")),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("Transaction List:"),
+              const SizedBox(height: 8.0),
+              transactions.isNotEmpty
+                  ? SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        columns: const [
+                          DataColumn(label: Text('Date')),
+                          DataColumn(label: Text('Amount')),
+                          DataColumn(label: Text('Category')),
+                          DataColumn(label: Text('Transfer To')),
+                        ],
+                        rows: transactions
+                            .map(
+                              (transaction) => DataRow(cells: [
+                                DataCell(
+                                    Text(transaction['transactionDate'] ?? '')),
+                                DataCell(Text(
+                                    transaction['amount']?.toString() ?? '')),
+                                DataCell(Text(transaction['category'] ?? '')),
+                                DataCell(Text(transaction['transferTo'] ?? '')),
+                              ]))
+                            .toList(),
                       ),
-                    ),
-                  )
-                : const Text("No transactions for pie chart."),
-            const SizedBox(height: 16.0),
-            // Bar Graph
-            transactions.isNotEmpty
-                ? SizedBox(
-                    height: 300, // Adjust height as needed
-                    child: BarChart(
-                      BarChartData(
-                        barGroups: _getBarChartGroups(),
-                        titlesData: FlTitlesData(
-                          leftTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              getTitlesWidget: (value, meta) => Text(value.toString()),
-                            ),
-                          ),
-                          bottomTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              getTitlesWidget: (value, meta) {
-                                int index = value.toInt();
-                                if (index >= 0 && index < categories.length) {
-                                  return Text(categories[index]);
-                                }
-                                return const Text('');
-                              },
-                            ),
-                          ),
-                        ),
-                        borderData: FlBorderData(show: false),
-                        gridData: FlGridData(show: false),
-                      ),
-                    ),
-                  )
-                : const Text("No transactions for bar chart."),
-            const Divider(height: 20.0),
-            const Text("Transaction List:"),
-            const SizedBox(height: 8.0),
-            transactions.isNotEmpty
-                ? SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: DataTable(
-                      columns: const [
-                        DataColumn(label: Text('Date')),
-                        DataColumn(label: Text('Amount')),
-                        DataColumn(label: Text('Category')),
-                        DataColumn(label: Text('Transfer To')),
-                      ],
-                      rows: transactions
-                          .map(
-                            (transaction) => DataRow(cells: [
-                              DataCell(
-                                  Text(transaction['transactionDate'] ?? '')),
-                              DataCell(Text(
-                                  transaction['amount']?.toString() ?? '')),
-                              DataCell(Text(transaction['category'] ?? '')),
-                              DataCell(Text(transaction['transferTo'] ?? '')),
-                            ]))
-                          .toList(),
-                    ),
-                  )
-                : const Text("No transactions found."),
-          ],
+                    )
+                  : const Text("No transactions found."),
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
-
-
-
-
-// Helper Functions for Charts
-  List<PieChartSectionData> _getPieChartSections() {
-    Map<String, double> categoryAmounts = {};
-
-    // Aggregate transaction amounts by category
-    for (var transaction in transactions) {
-      String category = transaction['category'] ?? 'Unknown';
-      double amount = double.tryParse(transaction['amount'].toString()) ?? 0.0;
-      categoryAmounts[category] = (categoryAmounts[category] ?? 0) + amount;
-    }
-
-    return categoryAmounts.entries
-        .map((entry) => PieChartSectionData(
-              value: entry.value,
-              title: entry.key,
-              color: Colors
-                  .primaries[entry.key.hashCode % Colors.primaries.length],
-              radius: 50,
-            ))
-        .toList();
-  }
-
-  List<BarChartGroupData> _getBarChartGroups() {
-    Map<String, double> categoryAmounts = {};
-
-    // Aggregate transaction amounts by category
-    for (var transaction in transactions) {
-      String category = transaction['category'] ?? 'Unknown';
-      double amount = double.tryParse(transaction['amount'].toString()) ?? 0.0;
-      categoryAmounts[category] = (categoryAmounts[category] ?? 0) + amount;
-    }
-
-    // Sort by category name
-    List<String> categories = categoryAmounts.keys.toList();
-    categories.sort();
-
-    return List.generate(categories.length, (index) {
-      String category = categories[index];
-      double amount = categoryAmounts[category]!;
-      return BarChartGroupData(
-        x: index,
-        barRods: [
-          BarChartRodData(
-            toY: amount,
-            width: 15,
-            color: Colors.blueAccent,
-          ),
-        ],
-      );
-    });
+    );
   }
 }
