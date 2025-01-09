@@ -1,5 +1,6 @@
 import 'package:expenso/screens/home/views/homescreen.dart';
 import 'package:flutter/material.dart';
+import 'package:expenso/login.dart';
 
 class MyAppView extends StatelessWidget {
   const MyAppView({super.key});
@@ -19,7 +20,9 @@ class MyAppView extends StatelessWidget {
             outline: Colors.grey
           )
         ),
-      home: HomeScreen(),
+      home: 
+          LoginScreen(),
+      
     );
   }
 }

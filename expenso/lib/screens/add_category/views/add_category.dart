@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 class AddCategory extends StatefulWidget {
   @override
   _AddCategoryScreenState createState() => _AddCategoryScreenState();
@@ -20,9 +22,11 @@ class _AddCategoryScreenState extends State<AddCategory> {
 
   // Asynchronous method to fetch transactions
   Future<void> loadTransactions() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? mobileNumber = prefs.getString('mobileNumber');
     try {
       // Await the Future and assign the result to the transactions variable
-      List<dynamic> fetchedTransactions = await TransactionService.fetchTransactions("8700002896");
+      List<dynamic> fetchedTransactions = await TransactionService.fetchTransactions(mobileNumber!);
       setState(() {
         transactions = fetchedTransactions;  // Update state with fetched transactions
       });
@@ -59,7 +63,7 @@ class _AddCategoryScreenState extends State<AddCategory> {
     }
 
     const String url =
-        "http://192.168.1.5:9001/expenso/api/v1/category/create/category";
+        "http://192.168.1.2:9001/expenso/api/v1/category/create/category";
     const String authorization = "Basic cm9vdDpyaXRpazc2OA==";
 
     final headers = {
@@ -122,12 +126,12 @@ class _AddCategoryScreenState extends State<AddCategory> {
                   children: [
                     Text(
                       'Transfer To: $transferTo',
-                      style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
                     ),
-                    SizedBox(height: 8.0),
-                    TextField(
+                    const SizedBox(height: 8.0),
+                    TextFormField(
                       controller: _controllers[id],
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Enter Category',
                         border: OutlineInputBorder(),
                       ),

@@ -7,6 +7,7 @@ import 'package:expenso/screens/stats/stats.dart';
 import 'package:expenso/transaction_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,9 +24,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
   // Asynchronous method to fetch transactions
   Future<void> loadTransactions() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? mobileNumber = prefs.getString('mobileNumber');
     try {
       // Await the Future and assign the result to the transactions variable
-      List<dynamic> fetchedTransactions = await TransactionService.fetchTransactions("8700002896");
+      List<dynamic> fetchedTransactions = await TransactionService.fetchTransactions(mobileNumber!);
       setState(() {
         transactions = fetchedTransactions;  // Update state with fetched transactions
       });
