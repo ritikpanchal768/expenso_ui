@@ -5,6 +5,7 @@ import 'package:expenso/transaction_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Mainscreen extends StatefulWidget {
   const Mainscreen({super.key});
@@ -13,24 +14,40 @@ class Mainscreen extends StatefulWidget {
   State<Mainscreen> createState() => _MainscreenState();
 }
 
+double expense = 0;
+
 class _MainscreenState extends State<Mainscreen> {
   @override
   void initState() {
     super.initState();
-    loadTransactions();  // Call the async method to load transactions
+    loadTransactions();
   }
+
   // Asynchronous method to fetch transactions
   Future<void> loadTransactions() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? mobileNumber = prefs.getString('mobileNumber');
+    print('TRANSACTION FETCH IN MAIN SCREEN.....');
     try {
       // Await the Future and assign the result to the transactions variable
-      List<dynamic> fetchedTransactions = await TransactionService.fetchTransactions("8700002896");
+      List<dynamic> fetchedTransactions =
+          await TransactionService.fetchTransactions(mobileNumber!);
+      double debit = 0;
+      for (var transaction in fetchedTransactions) {
+        if (transaction['transactionType'] == 'DEBIT') {
+          debit = debit + transaction['amount'];
+        }
+      } // Call the async method to load transactions
       setState(() {
-        transactions = fetchedTransactions;  // Update state with fetched transactions
+        transactions =
+            fetchedTransactions; // Update state with fetched transactions
+        expense = debit;
       });
     } catch (e) {
       print("Error loading transactions: $e");
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -119,13 +136,34 @@ class _MainscreenState extends State<Mainscreen> {
                         fontWeight: FontWeight.w600),
                   ),
                   // SizedBox(height: 12),
-                  const Text(
-                    '\$ 4800.00',
-                    style: TextStyle(
-                        fontSize: 40,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.currency_rupee,
                         color: Colors.white,
-                        fontWeight: FontWeight.bold),
+                        size: 40,
+                      ),
+                      const SizedBox(
+                          width:
+                              2), // Optional: Adds space between the icon and the amount
+                      Text(
+                        (53000 - expense).toStringAsFixed(2),
+                        style: const TextStyle(
+                            fontSize: 40,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800),
+                      ),
+                    ],
                   ),
+
+                  // const Text(
+                  //   '\$ 4800.00',
+                  //   style: TextStyle(
+                  //       fontSize: 40,
+                  //       color: Colors.white,
+                  //       fontWeight: FontWeight.bold),
+                  // ),
                   SizedBox(height: 12),
                   Padding(
                     padding:
@@ -159,13 +197,25 @@ class _MainscreenState extends State<Mainscreen> {
                                       color: Colors.white,
                                       fontWeight: FontWeight.w400),
                                 ),
-                                Text(
-                                  '\$ 53000',
-                                  style: TextStyle(
-                                      fontSize: 16,
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.currency_rupee,
                                       color: Colors.white,
-                                      fontWeight: FontWeight.w600),
-                                ),
+                                      size: 15,
+                                    ),
+                                    const SizedBox(
+                                        width:
+                                            2), // Optional: Adds space between the icon and the amount
+                                    Text(
+                                      '53000.0',
+                                      style: const TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w800),
+                                    ),
+                                  ],
+                                )
                               ],
                             )
                           ],
@@ -186,23 +236,35 @@ class _MainscreenState extends State<Mainscreen> {
                               )),
                             ),
                             const SizedBox(width: 8),
-                            const Column(
+                            Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                const Text(
                                   'Expense',
                                   style: TextStyle(
                                       fontSize: 14,
                                       color: Colors.white,
                                       fontWeight: FontWeight.w400),
                                 ),
-                                Text(
-                                  '\$ 53000',
-                                  style: TextStyle(
-                                      fontSize: 16,
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.currency_rupee,
                                       color: Colors.white,
-                                      fontWeight: FontWeight.w600),
-                                ),
+                                      size: 15,
+                                    ),
+                                    const SizedBox(
+                                        width:
+                                            2), // Optional: Adds space between the icon and the amount
+                                    Text(
+                                      expense.toStringAsFixed(1),
+                                      style: const TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w800),
+                                    ),
+                                  ],
+                                )
                               ],
                             )
                           ],
@@ -258,7 +320,7 @@ class _MainscreenState extends State<Mainscreen> {
                                                 255, 236, 165, 22),
                                             shape: BoxShape.circle),
                                       ),
-                                      Icon(
+                                      const Icon(
                                         Icons.food_bank,
                                         color: Colors.white,
                                         size: 40,
