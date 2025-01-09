@@ -1,9 +1,12 @@
-import 'package:fl_chart/fl_chart.dart';
+import 'package:expenso/app.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:telephony/telephony.dart';
 import 'dart:convert';
+import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+
+List<dynamic> transactions = [];
 
 class ReadSmsScreen extends StatefulWidget {
   const ReadSmsScreen({super.key});
@@ -11,6 +14,7 @@ class ReadSmsScreen extends StatefulWidget {
   @override
   State<ReadSmsScreen> createState() => _ReadSmsScreenState();
 }
+
 List<String> categories = [];
 Map<String, double> categoryAmounts = {};
 
@@ -22,7 +26,6 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
   String apiResponse = "";
   String transferTo = "";
   String referenceNumber = "";
-  List<dynamic> transactions = [];
 
   final TextEditingController categoryController = TextEditingController();
 
@@ -54,7 +57,7 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
         referenceNumber = payloadData["refNumber"];
         transferTo = payloadData["transferTo"];
       });
-      _showCategoryInputDialog();
+      // _showCategoryInputDialog();
     }
   }
 
@@ -124,6 +127,8 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
 
         categories = categoryAmounts.keys.toList();
         categories.sort();
+
+        print(transactions);
       }
     } catch (e) {
       print("Error fetching transactions: $e");
@@ -266,9 +271,8 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
 
         if (refNumber.isNotEmpty && category.isEmpty) {
           fetchTransactionDetails(refNumber);
-        } else {
-          fetchTransactions();
         }
+        fetchTransactions();
       }
     } catch (e) {
       print("Error creating expense: $e");
@@ -373,44 +377,6 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Expenso")),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text("Transaction List:"),
-              const SizedBox(height: 8.0),
-              transactions.isNotEmpty
-                  ? SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: DataTable(
-                        columns: const [
-                          DataColumn(label: Text('Date')),
-                          DataColumn(label: Text('Amount')),
-                          DataColumn(label: Text('Category')),
-                          DataColumn(label: Text('Transfer To')),
-                        ],
-                        rows: transactions
-                            .map(
-                              (transaction) => DataRow(cells: [
-                                DataCell(
-                                    Text(transaction['transactionDate'] ?? '')),
-                                DataCell(Text(
-                                    transaction['amount']?.toString() ?? '')),
-                                DataCell(Text(transaction['category'] ?? '')),
-                                DataCell(Text(transaction['transferTo'] ?? '')),
-                              ]))
-                            .toList(),
-                      ),
-                    )
-                  : const Text("No transactions found."),
-            ],
-          ),
-        ),
-      ),
-    );
+    return const MyApp();
   }
 }
