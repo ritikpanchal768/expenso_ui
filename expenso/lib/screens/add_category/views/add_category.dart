@@ -62,8 +62,8 @@ class _AddCategoryScreenState extends State<AddCategory> {
       return;
     }
 
-    const String url =
-        "http://192.168.1.2:9001/expenso/api/v1/category/create/category";
+    String url =
+        "$baseUrl/expenso/api/v1/category/create/category";
     const String authorization = "Basic cm9vdDpyaXRpazc2OA==";
 
     final headers = {
