@@ -52,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
           child: BottomNavigationBar(
               onTap: (value) {
-                // loadTransactions();      user from reload transaction on home and state bar 
+                loadTransactions();   //  user from reload transaction on home and state bar 
                 setState(() {
                   index = value;
                 });
@@ -103,7 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: const Icon(CupertinoIcons.add),
           ),
         ),
-        // body: index == 0 ? Mainscreen() : StatScreen());   // used to switch between home and state
-        body: Mainscreen());
+        body: index == 0 ? Mainscreen() : StatScreen());   // used to switch between home and state
+        // body: Mainscreen());
   }
 }
