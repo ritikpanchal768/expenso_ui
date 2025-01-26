@@ -8,7 +8,8 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
-final String baseUrl = "https://expenso-latest.onrender.com";
+// final String baseUrl = "https://expenso-latest.onrender.com";
+final String baseUrl = "http://192.168.1.6:9001";
 
 List<dynamic> transactions = [];
 
@@ -94,8 +95,7 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
     print("Fetching TransactionDetails...");
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String? mobileNumber = prefs.getString('mobileNumber');
-    String url =
-        "$baseUrl/expenso/api/v1/transaction/viewByMobileNumber/";
+    String url = "$baseUrl/expenso/api/v1/transaction/viewByMobileNumber/";
     url = "$url$mobileNumber";
     const String authorization = "Basic cm9vdDpyaXRpazc2OA==";
 
@@ -154,7 +154,7 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
           setState(() {
             textReceived = message.body ?? '';
           });
-
+          print(textReceived);
           createExpense(mobileNumber!, textReceived);
           fetchTransactions();
         },
@@ -169,8 +169,7 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
     final String? mobileNumber = prefs.getString('mobileNumber');
     if (message.body != null) {
       final String smsBody = message.body!;
-      String url =
-          "$baseUrl/expenso/api/v1/expense/create/expense";
+      String url = "$baseUrl/expenso/api/v1/expense/create/expense";
       const String authorization = "Basic cm9vdDpyaXRpazc2OA==";
 
       final headers = {
@@ -256,8 +255,7 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
   }
 
   Future<void> createExpense(String mobileNumber, String sms) async {
-    String url =
-        "$baseUrl:9001/expenso/api/v1/expense/create/expense";
+    String url = "$baseUrl/expenso/api/v1/expense/create/expense";
     const String authorization = "Basic cm9vdDpyaXRpazc2OA==";
 
     final headers = {
@@ -350,8 +348,7 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
   }
 
   Future<void> createCategory(String transferTo, String category) async {
-    String url =
-        "$baseUrl/expenso/api/v1/category/create/category";
+    String url = "$baseUrl/expenso/api/v1/category/create/category";
     const String authorization = "Basic cm9vdDpyaXRpazc2OA==";
 
     final headers = {
