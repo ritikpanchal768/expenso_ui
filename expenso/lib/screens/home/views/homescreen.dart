@@ -20,17 +20,20 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    loadTransactions();  // Call the async method to load transactions
+    loadTransactions(); // Call the async method to load transactions
   }
+
   // Asynchronous method to fetch transactions
   Future<void> loadTransactions() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String? mobileNumber = prefs.getString('mobileNumber');
     try {
       // Await the Future and assign the result to the transactions variable
-      List<dynamic> fetchedTransactions = await TransactionService.fetchTransactions(mobileNumber!);
+      List<dynamic> fetchedTransactions =
+          await TransactionService.fetchTransactions(mobileNumber!);
       setState(() {
-        transactions = fetchedTransactions;  // Update state with fetched transactions
+        transactions =
+            fetchedTransactions; // Update state with fetched transactions
       });
     } catch (e) {
       print("Error loading transactions: $e");
@@ -49,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
           child: BottomNavigationBar(
               onTap: (value) {
-                loadTransactions();
+                // loadTransactions();      user from reload transaction on home and state bar 
                 setState(() {
                   index = value;
                 });
@@ -100,6 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: const Icon(CupertinoIcons.add),
           ),
         ),
-        body: index == 0 ? Mainscreen() : StatScreen());
+        // body: index == 0 ? Mainscreen() : StatScreen());   // used to switch between home and state
+        body: Mainscreen());
   }
 }

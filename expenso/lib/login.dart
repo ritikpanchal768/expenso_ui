@@ -34,7 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     final url =
-        Uri.parse('http://192.168.1.2:9001/expenso/api/v1/login/verify/login');
+        Uri.parse('$baseUrl/expenso/api/v1/login/verify/login');
     final headers = {
       'Content-Type': 'application/json',
       'Authorization': 'Basic cm9vdDpyaXRpazc3Njg=',
