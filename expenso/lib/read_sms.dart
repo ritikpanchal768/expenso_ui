@@ -1,10 +1,14 @@
 import 'package:expenso/app.dart';
+import 'package:expenso/screens/home/views/homescreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:telephony/telephony.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+
+final String baseUrl = "https://expenso-latest.onrender.com";
 
 List<dynamic> transactions = [];
 
@@ -88,8 +92,11 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
 
   Future<void> fetchTransactions() async {
     print("Fetching TransactionDetails...");
-    const String url =
-        "http://192.168.1.5:9001/expenso/api/v1/transaction/viewByMobileNumber/8700002896";
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? mobileNumber = prefs.getString('mobileNumber');
+    String url =
+        "$baseUrl/expenso/api/v1/transaction/viewByMobileNumber/";
+    url = "$url$mobileNumber";
     const String authorization = "Basic cm9vdDpyaXRpazc2OA==";
 
     final headers = {
@@ -137,6 +144,8 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
 
   Future<void> requestPermissionsAndStartListening() async {
     bool? permissionsGranted = await telephony.requestSmsPermissions;
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? mobileNumber = prefs.getString('mobileNumber');
     if (permissionsGranted == true) {
       print("Started Listening....");
       fetchTransactions();
@@ -146,7 +155,7 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
             textReceived = message.body ?? '';
           });
 
-          createExpense("8700002896", textReceived);
+          createExpense(mobileNumber!, textReceived);
           fetchTransactions();
         },
         onBackgroundMessage: backgroundMessageHandler,
@@ -156,17 +165,19 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
   }
 
   static Future<void> backgroundMessageHandler(SmsMessage message) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? mobileNumber = prefs.getString('mobileNumber');
     if (message.body != null) {
       final String smsBody = message.body!;
-      const String url =
-          "http://192.168.1.5:9001/expenso/api/v1/expense/create/expense";
+      String url =
+          "$baseUrl/expenso/api/v1/expense/create/expense";
       const String authorization = "Basic cm9vdDpyaXRpazc2OA==";
 
       final headers = {
         'Content-Type': 'application/json',
         'Authorization': authorization
       };
-      final body = jsonEncode({"mobileNumber": "8700002896", "sms": smsBody});
+      final body = jsonEncode({"mobileNumber": mobileNumber, "sms": smsBody});
 
       try {
         // Create expense
@@ -190,8 +201,8 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
 
   static Future<void> fetchTransactionDetailsInBackground(
       String refNumber) async {
-    const String urlBase =
-        "http://192.168.1.5:9001/expenso/api/v1/transaction/viewByReferenceNumber/";
+    String urlBase =
+        "$baseUrl/expenso/api/v1/transaction/viewByReferenceNumber/";
     const String authorization = "Basic cm9vdDpyaXRpazc2OA==";
 
     final headers = {
@@ -245,8 +256,8 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
   }
 
   Future<void> createExpense(String mobileNumber, String sms) async {
-    const String url =
-        "http://192.168.1.5:9001/expenso/api/v1/expense/create/expense";
+    String url =
+        "$baseUrl:9001/expenso/api/v1/expense/create/expense";
     const String authorization = "Basic cm9vdDpyaXRpazc2OA==";
 
     final headers = {
@@ -280,8 +291,8 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
   }
 
   Future<void> fetchTransactionDetails(String refNumber) async {
-    const String urlBase =
-        "http://192.168.1.5:9001/expenso/api/v1/transaction/viewByReferenceNumber/";
+    String urlBase =
+        "$baseUrl/expenso/api/v1/transaction/viewByReferenceNumber/";
     const String authorization = "Basic cm9vdDpyaXRpazc2OA==";
 
     final headers = {
@@ -339,8 +350,8 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
   }
 
   Future<void> createCategory(String transferTo, String category) async {
-    const String url =
-        "http://192.168.1.5:9001/expenso/api/v1/category/create/category";
+    String url =
+        "$baseUrl/expenso/api/v1/category/create/category";
     const String authorization = "Basic cm9vdDpyaXRpazc2OA==";
 
     final headers = {
@@ -377,6 +388,6 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const MyApp();
+    return const HomeScreen();
   }
 }
