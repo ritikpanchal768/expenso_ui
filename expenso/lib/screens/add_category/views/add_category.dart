@@ -1,3 +1,4 @@
+import 'package:expenso/logs.dart';
 import 'package:expenso/read_sms.dart';
 import 'package:expenso/transaction_service.dart';
 import 'package:flutter/material.dart';
@@ -86,6 +87,13 @@ class _AddCategoryScreenState extends State<AddCategory> {
     try {
       final response = await http.post(Uri.parse(url),
           headers: headers, body: json.encode(payload));
+      printRequestResponse(
+        method: "GET",
+        url: url,
+        headers: headers,
+        requestBody: (payload),
+        response : response
+      );
 
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -127,8 +135,8 @@ class _AddCategoryScreenState extends State<AddCategory> {
         child: Column(
           children: filteredTransactions.map((transaction) {
             final id = transaction['id']!;
-            final transferTo = transaction['transferTo']!;
-            final transferFrom = transaction['transferFrom']!;
+            final transferTo = transaction['transferTo'];
+            final transferFrom = transaction['transferFrom'];
             return Card(
               margin: EdgeInsets.all(8.0),
               child: Padding(

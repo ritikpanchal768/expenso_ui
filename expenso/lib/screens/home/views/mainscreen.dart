@@ -28,6 +28,12 @@ class _MainscreenState extends State<Mainscreen> {
     await Future.delayed(
         const Duration(seconds: 2)); // Simulating a network call
     setState(() {
+      // Ensure the ReadSmsScreen instance is available before calling the method
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (readSmsScreenKey.currentState != null) {
+          readSmsScreenKey.currentState!.readAllSmsOnAppStart();
+        }
+      });
       loadTransactions();
     });
   }
