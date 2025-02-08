@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:expenso/logs.dart';
 import 'package:expenso/read_sms.dart'; // Correct path to your ReadSmsScreen
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -33,8 +34,8 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
-    final url =
-        Uri.parse('$baseUrl/expenso/api/v1/login/verify/login');
+    final String url =
+        "$baseUrl/expenso/api/v1/login/verify/login";
     final headers = {
       'Content-Type': 'application/json',
       'Authorization': 'Basic cm9vdDpyaXRpazc3Njg=',
@@ -45,7 +46,16 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final response = await http.post(url, headers: headers, body: body);
+      final response = await http.post(url as Uri, headers: headers, body: body);
+      printRequestResponse(
+          method: "POST",
+          url: url,
+          headers: headers,
+          requestBody: ({
+                'mobileNumber': mobileNumber,
+                'passwordHash': passwordHash,
+              }),
+          response: response);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -67,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
           if (context.mounted) {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const ReadSmsScreen()),
+              MaterialPageRoute(builder: (context) => ReadSmsScreen(key: readSmsScreenKey)),
             );
           }
         } else {
@@ -93,7 +103,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (context.mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const ReadSmsScreen()),
+          MaterialPageRoute(builder: (context) => ReadSmsScreen(key: readSmsScreenKey)),
         );
       }
     }

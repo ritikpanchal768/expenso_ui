@@ -1,13 +1,10 @@
 import 'dart:math';
 
-import 'package:expenso/read_sms.dart';
 import 'package:expenso/screens/add_category/views/add_category.dart';
 import 'package:expenso/screens/home/views/mainscreen.dart';
 import 'package:expenso/screens/stats/stats.dart';
-import 'package:expenso/transaction_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,24 +17,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    loadTransactions(); // Call the async method to load transactions
-  }
-
-  // Asynchronous method to fetch transactions
-  Future<void> loadTransactions() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String? mobileNumber = prefs.getString('mobileNumber');
-    try {
-      // Await the Future and assign the result to the transactions variable
-      List<dynamic> fetchedTransactions =
-          await TransactionService.fetchTransactions(mobileNumber!);
-      setState(() {
-        transactions =
-            fetchedTransactions; // Update state with fetched transactions
-      });
-    } catch (e) {
-      print("Error loading transactions: $e");
-    }
   }
 
   int index = 0;
@@ -47,12 +26,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        // appBar: AppBar(),
         bottomNavigationBar: ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
           child: BottomNavigationBar(
               onTap: (value) {
-                loadTransactions();   //  user from reload transaction on home and state bar 
                 setState(() {
                   index = value;
                 });
@@ -78,7 +55,6 @@ class _HomeScreenState extends State<HomeScreen> {
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            loadTransactions();
             Navigator.push(
               context,
               MaterialPageRoute<void>(
