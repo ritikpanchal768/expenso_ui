@@ -1,3 +1,4 @@
+import 'package:expenso/logs.dart';
 import 'package:expenso/read_sms.dart';
 import 'package:expenso/transaction_service.dart';
 import 'package:flutter/material.dart';
@@ -26,9 +27,11 @@ class _AddCategoryScreenState extends State<AddCategory> {
     final String? mobileNumber = prefs.getString('mobileNumber');
     try {
       // Await the Future and assign the result to the transactions variable
-      List<dynamic> fetchedTransactions = await TransactionService.fetchTransactions(mobileNumber!);
+      List<dynamic> fetchedTransactions =
+          await TransactionService.fetchTransactions(mobileNumber!);
       setState(() {
-        transactions = fetchedTransactions;  // Update state with fetched transactions
+        transactions =
+            fetchedTransactions; // Update state with fetched transactions
       });
 
       // Now initialize TextEditingControllers only for transactions where category is null or empty
@@ -57,13 +60,16 @@ class _AddCategoryScreenState extends State<AddCategory> {
 
     if (category.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter a category for ${transaction['transferTo']}')),
+        SnackBar(
+          content: Text(
+            'Please enter a category for ${transaction['transferTo'] ?? transaction['transferFrom']}',
+          ),
+        ),
       );
       return;
     }
 
-    String url =
-        "$baseUrl/expenso/api/v1/category/create/category";
+    String url = "$baseUrl/expenso/api/v1/category/create/category";
     const String authorization = "Basic cm9vdDpyaXRpazc2OA==";
 
     final headers = {
@@ -74,16 +80,26 @@ class _AddCategoryScreenState extends State<AddCategory> {
     // API request payload
     final payload = {
       'transferTo': transaction['transferTo'],
+      'tranferFrom': transaction['transferFrom'],
       'category': category,
     };
 
     try {
-       final response =
-          await http.post(Uri.parse(url), headers: headers, body: json.encode(payload));
+      final response = await http.post(Uri.parse(url),
+          headers: headers, body: json.encode(payload));
+      printRequestResponse(
+        method: "GET",
+        url: url,
+        headers: headers,
+        requestBody: (payload),
+        response : response
+      );
 
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Category added successfully for ${transaction['transferTo']}')),
+          SnackBar(
+              content: Text(
+                  'Category added successfully for ${transaction['transferTo'] ?? transaction['transferFrom']}')),
         );
         setState(() {
           transaction['category'] = category;
@@ -91,7 +107,9 @@ class _AddCategoryScreenState extends State<AddCategory> {
         loadTransactions();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to add category for ${transaction['transferTo']}')),
+          SnackBar(
+              content: Text(
+                  'Failed to add category for ${transaction['transferTo'] ?? transaction['transferFrom']}')),
         );
       }
     } catch (e) {
@@ -105,7 +123,8 @@ class _AddCategoryScreenState extends State<AddCategory> {
   Widget build(BuildContext context) {
     // Filter transactions where category is null or empty
     final filteredTransactions = transactions
-        .where((transaction) => transaction['category'] == null || transaction['category'] == '')
+        .where((transaction) =>
+            transaction['category'] == null || transaction['category'] == '')
         .toList();
 
     return Scaffold(
@@ -116,7 +135,8 @@ class _AddCategoryScreenState extends State<AddCategory> {
         child: Column(
           children: filteredTransactions.map((transaction) {
             final id = transaction['id']!;
-            final transferTo = transaction['transferTo']!;
+            final transferTo = transaction['transferTo'];
+            final transferFrom = transaction['transferFrom'];
             return Card(
               margin: EdgeInsets.all(8.0),
               child: Padding(
@@ -125,8 +145,11 @@ class _AddCategoryScreenState extends State<AddCategory> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Transfer To: $transferTo',
-                      style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                      'Transfer To: ${transferTo ?? transferFrom}',
+                      style: const TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 8.0),
                     TextFormField(

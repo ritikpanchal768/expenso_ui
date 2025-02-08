@@ -15,6 +15,7 @@ class Mainscreen extends StatefulWidget {
 }
 
 double expense = 0;
+double income = 0;
 
 class _MainscreenState extends State<Mainscreen> {
   @override
@@ -27,6 +28,12 @@ class _MainscreenState extends State<Mainscreen> {
     await Future.delayed(
         const Duration(seconds: 2)); // Simulating a network call
     setState(() {
+      // Ensure the ReadSmsScreen instance is available before calling the method
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (readSmsScreenKey.currentState != null) {
+          readSmsScreenKey.currentState!.readAllSmsOnAppStart();
+        }
+      });
       loadTransactions();
     });
   }
@@ -41,15 +48,20 @@ class _MainscreenState extends State<Mainscreen> {
       List<dynamic> fetchedTransactions =
           await TransactionService.fetchTransactions(mobileNumber!);
       double debit = 0;
+      double salary = 0;
       for (var transaction in fetchedTransactions) {
         if (transaction['transactionType'] == 'DEBIT') {
           debit = debit + transaction['amount'];
+        } else if (transaction['transactionType'] == 'CREDIT') {
+          salary = salary + transaction['amount'];
+          break;
         }
       } // Call the async method to load transactions
       setState(() {
         transactions =
             fetchedTransactions; // Update state with fetched transactions
         expense = debit;
+        income = salary;
       });
     } catch (e) {
       print("Error loading transactions: $e");
@@ -160,7 +172,7 @@ class _MainscreenState extends State<Mainscreen> {
                             width:
                                 2), // Optional: Adds space between the icon and the amount
                         Text(
-                          (0 - expense).toStringAsFixed(2),
+                          (income - expense).toStringAsFixed(2),
                           style: const TextStyle(
                               fontSize: 40,
                               color: Colors.white,
@@ -199,10 +211,10 @@ class _MainscreenState extends State<Mainscreen> {
                                 )),
                               ),
                               const SizedBox(width: 8),
-                              const Column(
+                              Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
+                                  const Text(
                                     'Income',
                                     style: TextStyle(
                                         fontSize: 14,
@@ -220,7 +232,7 @@ class _MainscreenState extends State<Mainscreen> {
                                           width:
                                               2), // Optional: Adds space between the icon and the amount
                                       Text(
-                                        '00.0',
+                                        income.toStringAsFixed(2),
                                         style: const TextStyle(
                                             fontSize: 14,
                                             color: Colors.white,
