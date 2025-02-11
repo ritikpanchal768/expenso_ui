@@ -48,20 +48,20 @@ class _MainscreenState extends State<Mainscreen> {
       List<dynamic> fetchedTransactions =
           await TransactionService.fetchTransactions(mobileNumber!);
       double debit = 0;
-      double salary = 0;
+      double Income = 0;
       for (var transaction in fetchedTransactions) {
         if (transaction['transactionType'] == 'DEBIT') {
           debit = debit + transaction['amount'];
         } else if (transaction['transactionType'] == 'CREDIT') {
-          salary = salary + transaction['amount'];
-          break;
+          Income = Income + transaction['amount'];
+          if(transaction['category'] == 'Income') break;
         }
       } // Call the async method to load transactions
       setState(() {
         transactions =
             fetchedTransactions; // Update state with fetched transactions
         expense = debit;
-        income = salary;
+        income = Income;
       });
     } catch (e) {
       print("Error loading transactions: $e");
@@ -180,14 +180,6 @@ class _MainscreenState extends State<Mainscreen> {
                         ),
                       ],
                     ),
-
-                    // const Text(
-                    //   '\$ 4800.00',
-                    //   style: TextStyle(
-                    //       fontSize: 40,
-                    //       color: Colors.white,
-                    //       fontWeight: FontWeight.bold),
-                    // ),
                     SizedBox(height: 12),
                     Padding(
                       padding: const EdgeInsets.symmetric(
@@ -352,14 +344,33 @@ class _MainscreenState extends State<Mainscreen> {
                                       ],
                                     ),
                                     const SizedBox(width: 12),
-                                    Text(
-                                      transaction['category'],
-                                      style: TextStyle(
-                                          fontSize: 14,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface,
-                                          fontWeight: FontWeight.w500),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,  // Ensures left alignment
+                                      children: [
+                                        Text(
+                                          transaction['category'],
+                                          style: TextStyle(
+                                              fontSize: 14,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface,
+                                              fontWeight: FontWeight.w500),
+                                        ),
+                                        SizedBox(
+                                          width: MediaQuery.of(context).size.width * 0.3, // Adjust width
+                                          child: Text(
+                                            transaction['transferTo'] ?? transaction['transferFrom'] ?? 'Cash Payment',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: Theme.of(context).colorScheme.onSurface,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
+                                            softWrap: false,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
@@ -367,9 +378,9 @@ class _MainscreenState extends State<Mainscreen> {
                                   children: [
                                     Row(
                                       children: [
-                                        const Icon(
+                                        Icon(
                                           Icons.currency_rupee,
-                                          color: Colors.red,
+                                          color: transaction['transactionType'] == 'CREDIT' ? Colors.green : Colors.red,
                                           size: 13,
                                         ),
                                         const SizedBox(
@@ -378,9 +389,9 @@ class _MainscreenState extends State<Mainscreen> {
                                         Text(
                                           transaction['amount']
                                               .toStringAsFixed(2),
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 14,
-                                            color: Colors.red,
+                                            color: transaction['transactionType'] == 'CREDIT' ? Colors.green : Colors.red,
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
