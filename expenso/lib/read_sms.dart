@@ -1,5 +1,6 @@
 import 'package:expenso/app.dart';
 import 'package:expenso/logs.dart';
+import 'package:expenso/screens/add_category/views/add_category.dart';
 import 'package:expenso/screens/home/views/homescreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -10,9 +11,9 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 
-// final String baseUrl = "https://expenso-latest.onrender.com";
-// final String baseUrl = "http://192.168.1.193:9001";
-final String baseUrl = "https://ritikpanchal.xyz";
+
+final String baseUrl = "http://192.168.1.193:9001";
+// final String baseUrl = "https://ritikpanchal.xyz";
 
 List<dynamic> transactions = [];
 final GlobalKey<_ReadSmsScreenState> readSmsScreenKey =
@@ -25,7 +26,6 @@ class ReadSmsScreen extends StatefulWidget {
   State<ReadSmsScreen> createState() => _ReadSmsScreenState();
 }
 
-List<String> categories = [];
 Map<String, double> categoryAmounts = {};
 
 class _ReadSmsScreenState extends State<ReadSmsScreen> {
@@ -90,6 +90,18 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
               break; // Stop looping immediately
             }
           }
+          else if (sms != null &&
+              sms.contains("Sent") &&
+              sms.contains('HDFC')) {
+            shouldStopProcessing =
+                await createExpense(mobileNumber, timeStamp!, sms!);
+
+            if (shouldStopProcessing) {
+              print(
+                  "Stopping SMS processing as we already updated transactions");
+              break; // Stop looping immediately
+            }
+          }
         } catch (e) {
           print("Skipping invalid message format: $rawMessage. Error: $e");
         }
@@ -111,12 +123,13 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
 
   void handleNotificationResponse(NotificationResponse response) async {
     if (response.payload != null) {
-      final Map<String, dynamic> payloadData = jsonDecode(response.payload!);
-      setState(() {
-        referenceNumber = payloadData["refNumber"];
-        transferTo = payloadData["transferTo"];
-      });
-      // _showCategoryInputDialog();
+      // Navigate to AddCategoryScreen
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AddCategory(),
+        ),
+      );
     }
   }
 
@@ -143,60 +156,6 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
       notificationDetails,
       payload: payload,
     );
-  }
-
-  Future<void> fetchTransactions() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String? mobileNumber = prefs.getString('mobileNumber');
-    String url = "$baseUrl/expenso/api/v1/transaction/viewByMobileNumber/";
-    url = "$url$mobileNumber";
-    const String authorization = "Basic cm9vdDpyaXRpazc2OA==";
-
-    final headers = {
-      'Content-Type': 'application/json',
-      'Authorization': authorization
-    };
-
-    try {
-      final response = await http.get(Uri.parse(url), headers: headers);
-      printRequestResponse(
-          method: "GET",
-          url: url,
-          headers: headers,
-          requestBody: ({}),
-          response: response);
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        setState(() {
-          transactions = (responseData['responseObject'] ?? [])
-              .map((transaction) => {
-                    ...transaction,
-                    'transactionDate': transaction['transactionDate'] ?? ''
-                  })
-              .toList();
-          transactions.sort(
-              (a, b) => b['transactionDate'].compareTo(a['transactionDate']));
-        });
-
-        // Calculate categories and amounts
-        categoryAmounts.clear();
-        for (var transaction in transactions) {
-          String category = transaction['category'] ?? 'Uncategorized';
-          double amount = transaction['amount']?.toDouble() ?? 0.0;
-
-          if (categoryAmounts.containsKey(category)) {
-            categoryAmounts[category] = categoryAmounts[category]! + amount;
-          } else {
-            categoryAmounts[category] = amount;
-          }
-        }
-
-        categories = categoryAmounts.keys.toList();
-        categories.sort();
-      }
-    } catch (e) {
-      print("Error fetching transactions: $e");
-    }
   }
 
   Future<void> requestPermissionsAndStartListening() async {
@@ -409,80 +368,7 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
     }
   }
 
-  void _showCategoryInputDialog() {
-    // Clear the category input field
-    categoryController.clear();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Add Category"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text("Transfer To: $transferTo"),
-            TextField(
-              controller: categoryController,
-              decoration: const InputDecoration(labelText: "Enter Category"),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              final category = categoryController.text.trim();
-              if (category.isNotEmpty) {
-                createCategory(transferTo, category);
-                Navigator.pop(context);
-              }
-            },
-            child: const Text("Submit"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> createCategory(String transferTo, String category) async {
-    String url = "$baseUrl/expenso/api/v1/category/create/category";
-    const String authorization = "Basic cm9vdDpyaXRpazc2OA==";
-
-    final headers = {
-      'Content-Type': 'application/json',
-      'Authorization': authorization
-    };
-    final body = jsonEncode({"transferTo": transferTo, "category": category});
-
-    try {
-      final response =
-          await http.post(Uri.parse(url), headers: headers, body: body);
-      printRequestResponse(
-          method: "GET",
-          url: url,
-          headers: headers,
-          requestBody: ({"transferTo": transferTo, "category": category}),
-          response: response);
-      if (response.statusCode == 200) {
-        print("Category added successfully.");
-        await flutterLocalNotificationsPlugin.show(
-          0,
-          'Category Added',
-          'Your category has been mapped successfully.',
-          const NotificationDetails(
-            android: AndroidNotificationDetails(
-              'expenso_channel',
-              'Expenso',
-              channelDescription: 'Expenso notifications',
-              importance: Importance.high,
-              priority: Priority.high,
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      print("Error creating category: $e");
-    }
-  }
-
+  
   @override
   Widget build(BuildContext context) {
     return const HomeScreen();
