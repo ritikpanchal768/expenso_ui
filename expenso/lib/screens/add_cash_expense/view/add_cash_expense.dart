@@ -14,15 +14,20 @@ class _AddCashExpenseState extends State<AddCashExpense> {
   String? _selectedCategory;
   DateTime _selectedDate = DateTime.now();
   bool _isCustomCategory = false;
+  List<String> _categories = [];
 
-  final List<String> _categories = [
-    'Food',
-    'Transport',
-    'Shopping',
-    'Entertainment',
-    'Bills',
-    'Others ( New Custom Field )'
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  void _loadCategories() async {
+    List<String> categories = await AddCashExpenseApiIntegration.fetchCategories();
+    setState(() {
+      _categories = ["Others ( New Custom Field )", ...categories]; // Ensure "Others" is always on top
+    });
+  }
 
   void _pickDate() async {
     DateTime? pickedDate = await showDatePicker(
@@ -80,7 +85,6 @@ class _AddCashExpenseState extends State<AddCashExpense> {
         );
       }
 
-      // Clear fields after saving
       _amountController.clear();
       _customCategoryController.clear();
       setState(() {
@@ -119,26 +123,28 @@ class _AddCashExpenseState extends State<AddCashExpense> {
             SizedBox(height: 15),
 
             // Dropdown for categories
-            DropdownButtonFormField<String>(
-              value: _selectedCategory,
-              items: _categories.map((category) {
-                return DropdownMenuItem(
-                  value: category,
-                  child: Text(category),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedCategory = value;
-                  _isCustomCategory = value == "Others ( New Custom Field )";
-                });
-              },
-              decoration: InputDecoration(
-                labelText: "Select Category",
-                prefixIcon: Icon(Icons.category),
-                border: OutlineInputBorder(),
-              ),
-            ),
+            _categories.isEmpty
+                ? Center(child: CircularProgressIndicator())
+                : DropdownButtonFormField<String>(
+                    value: _selectedCategory,
+                    items: _categories.map((category) {
+                      return DropdownMenuItem(
+                        value: category,
+                        child: Text(category),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedCategory = value;
+                        _isCustomCategory = value == "Others ( New Custom Field )";
+                      });
+                    },
+                    decoration: InputDecoration(
+                      labelText: "Select Category",
+                      prefixIcon: Icon(Icons.category),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
             SizedBox(height: 15),
 
             // Show custom category text field when "Others ( New Custom Field )" is selected

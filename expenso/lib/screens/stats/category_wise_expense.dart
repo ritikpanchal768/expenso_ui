@@ -6,16 +6,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'chart.dart';
 
-class StatScreen extends StatefulWidget {
-  const StatScreen({super.key});
+class CategoryWiseTransactions extends StatefulWidget {
+  const CategoryWiseTransactions({super.key});
 
   @override
-  State<StatScreen> createState() => _StatScreenState();
+  State<CategoryWiseTransactions> createState() => _CategoryWiseTransactions();
 }
 
 List<dynamic> statTransactions = [];
 
-class _StatScreenState extends State<StatScreen> {
+class _CategoryWiseTransactions extends State<CategoryWiseTransactions> {
   @override
   void initState() {
     super.initState();
@@ -84,19 +84,19 @@ class _StatScreenState extends State<StatScreen> {
             //       padding: EdgeInsets.fromLTRB(12, 20, 12, 12),
             //       child: MyChart(),
             //     )),
-            const SizedBox(height: 40),
-            Row(
-              children: [
-                Text(
-                  'Transactions',
-                  style: TextStyle(
-                      fontSize: 16,
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontWeight: FontWeight.bold),
-                )
-              ],
-            ),
-            const SizedBox(height: 20),
+            // const SizedBox(height: 40),
+            // Row(
+            //   children: [
+            //     Text(
+            //       'Transactions',
+            //       style: TextStyle(
+            //           fontSize: 16,
+            //           color: Theme.of(context).colorScheme.onSurface,
+            //           fontWeight: FontWeight.bold),
+            //     )
+            //   ],
+            // ),
+            // const SizedBox(height: 20),
             Expanded(
               child: ListView.builder(
                   itemCount: statTransactions.length,
