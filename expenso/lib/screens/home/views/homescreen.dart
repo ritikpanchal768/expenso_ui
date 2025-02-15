@@ -3,7 +3,8 @@ import 'dart:math';
 import 'package:expenso/screens/add_cash_expense/view/add_cash_expense.dart';
 import 'package:expenso/screens/add_category/views/add_category.dart';
 import 'package:expenso/screens/home/views/mainscreen.dart';
-import 'package:expenso/screens/stats/stats.dart';
+import 'package:expenso/screens/stats/select_stats.dart';
+import 'package:expenso/screens/stats/category_wise_expense.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -126,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: index == 0
           ? Mainscreen()
-          : StatScreen(), // Switch between home and stats
+          : CardSelectionScreen(), // Switch between home and stats
     );
   }
 }

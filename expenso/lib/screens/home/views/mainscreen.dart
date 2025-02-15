@@ -336,7 +336,7 @@ class _MainscreenState extends State<Mainscreen> {
                                                   255, 236, 165, 22),
                                               shape: BoxShape.circle),
                                         ),
-                                        const Icon(
+                                        Icon(
                                           Icons.food_bank,
                                           color: Colors.white,
                                           size: 40,

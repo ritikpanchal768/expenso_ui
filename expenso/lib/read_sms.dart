@@ -12,7 +12,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 
 
-final String baseUrl = "http://192.168.1.193:9001";
+const String baseUrl = "http://192.168.1.193:9001";
 // final String baseUrl = "https://ritikpanchal.xyz";
 
 List<dynamic> transactions = [];
@@ -78,23 +78,10 @@ class _ReadSmsScreenState extends State<ReadSmsScreen> {
           // Extract SMS body safely
           String? sms = message['body'] as String?;
           String? timeStamp = message['date'] as String?;
-          if (sms != null &&
-              (sms!.contains("credited") || sms!.contains("debited")) &&
-              sms!.contains('SBI')) {
+          if (sms != null && ( sms.contains('HDFC') || sms.contains('PNB') 
+          || sms.contains('SBI') || sms.contains('Axis Bank'))){
             shouldStopProcessing =
-                await createExpense(mobileNumber, timeStamp!, sms!);
-
-            if (shouldStopProcessing) {
-              print(
-                  "Stopping SMS processing as we already updated transactions");
-              break; // Stop looping immediately
-            }
-          }
-          else if (sms != null &&
-              sms.contains("Sent") &&
-              sms.contains('HDFC')) {
-            shouldStopProcessing =
-                await createExpense(mobileNumber, timeStamp!, sms!);
+                await createExpense(mobileNumber, timeStamp!, sms);
 
             if (shouldStopProcessing) {
               print(
